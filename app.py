@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import logging
 import sys
 
@@ -18,6 +19,8 @@ except Exception as e:
 
 # --- Initialize Flask App (Part B) ---
 app = Flask(__name__)
+# Enable CORS for all routes (useful for browser-based clients)
+CORS(app)
 
 # --- API Endpoints ---
 
@@ -26,6 +29,11 @@ def home():
     """To check whether the API is running."""
 
     return "Semantic Similarity API is running. Use /calculate-similarity endpoint."
+
+@app.route('/health', methods=['GET'])
+def health():
+    """Lightweight health check endpoint for uptime probes."""
+    return jsonify({"status": "ok"}), 200
 
 @app.route('/calculate-similarity', methods=['POST'])
 def calculate_similarity():
