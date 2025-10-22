@@ -24,8 +24,11 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     """To check whether the API is running."""
-
-    return "Semantic Similarity API is running. Use /calculate-similarity endpoint."
+    return jsonify({
+        "message": "Semantic Similarity API is running", 
+        "algorithm": "MinHash Semantic Fingerprinting",
+        "endpoint": "POST /calculate-similarity"
+    })
 
 @app.route('/calculate-similarity', methods=['POST'])
 def calculate_similarity():
@@ -50,13 +53,19 @@ def calculate_similarity():
         return jsonify({
             "error": "Invalid input. Request body must be a JSON object "
                      "with 'text1' and 'text2' keys."
-        }), 400  # Bad Request
+        }), 400
     
     try:
         text1 = data['text1']
         text2 = data['text2']
 
-        # 3. Calculate the similarity score using our model (Part A)
+        # Validate input types
+        if not isinstance(text1, str) or not isinstance(text2, str):
+            return jsonify({
+                "error": "Both 'text1' and 'text2' must be strings."
+            }), 400
+
+        # 3. Calculate the similarity score using our MinHash model (Part A)
         score = model_instance.get_similarity_score(text1, text2)
         
         # 4. Format the response exactly as required
@@ -64,14 +73,23 @@ def calculate_similarity():
             "similarity score": score
         }
         
-        logger.info(f"Successfully calculated similarity. Score: {score}")
+        logger.info(f"Successfully calculated MinHash similarity. Score: {score}")
         return jsonify(response_body), 200
 
     except Exception as e:
         logger.error(f"Internal Server Error during calculation: {str(e)}")
         return jsonify({"error": f"An internal error occurred: {str(e)}"}), 500
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        "status": "healthy",
+        "model_initialized": model_instance.initialized,
+        "algorithm": "MinHash Semantic Fingerprinting"
+    })
+
 # --- Main execution block ---
 if __name__ == '__main__':
-    logger.info("Starting Flask server for local testing...")
+    logger.info("Starting Flask server with MinHash algorithm...")
     app.run(host='0.0.0.0', port=5000, debug=False)
