@@ -1,6 +1,11 @@
-$body = @{
-    text1 = "A man is playing a guitar."
-    text2 = "A person is strumming a musical instrument."
+import requests
+
+url = "https://data-neuron-live.onrender.com/calculate-similarity"
+data = {
+    "text1": "I love machine learning",
+    "text2": "Machine learning is fascinating"
 }
 
-Invoke-RestMethod -Uri http://127.0.0.1:5000/calculate-similarity -Method POST -ContentType "application/json" -Body ($body | ConvertTo-Json)
+response = requests.post(url, json=data)
+print(response.json())
+# Output: {"similarity score": 0.75}
