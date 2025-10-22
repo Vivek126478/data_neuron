@@ -37,12 +37,14 @@ def calculate_similarity():
     
     # 1. Get the JSON data from the request body
     try:
-        data = request.get_json()
+        data = request.get_json(force=False, silent=False)
         if data is None:
             raise ValueError("No JSON payload received.")
+        if not isinstance(data, dict):
+            raise ValueError("JSON payload must be an object.")
     except Exception as e:
         logger.warning(f"Bad Request: Could not parse JSON. Error: {e}")
-        return jsonify({"error": "Invalid request. Body must be valid JSON."}), 400
+        return jsonify({"error": "Invalid request. Body must be valid JSON object."}), 400
 
     # 2. Validate the input keys
     if 'text1' not in data or 'text2' not in data:
@@ -56,8 +58,11 @@ def calculate_similarity():
         text1 = data['text1']
         text2 = data['text2']
 
+        if not isinstance(text1, (str, int, float)) or not isinstance(text2, (str, int, float)):
+            return jsonify({"error": "'text1' and 'text2' must be strings or numbers."}), 400
+
         # 3. Calculate the similarity score using our model (Part A)
-        score = model_instance.get_similarity_score(text1, text2)
+        score = model_instance.get_similarity_score(str(text1), str(text2))
         
         # 4. Format the response exactly as required
         response_body = {
